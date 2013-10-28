@@ -11,3 +11,12 @@ make
 server <port>
 
 =============
+
+lab 4 build:
+
+1. Build the project using makefile
+make
+2. Execute server
+server
+3. Execute client with parameter <host> <port> <fileName>
+client 127.0.0.1 8008 file1.txt
