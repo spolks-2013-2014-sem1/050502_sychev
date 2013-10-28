@@ -1,5 +1,3 @@
 old:	
-	gcc -c server.c
-	gcc server.o -o server
-	gcc -c client.c
-	gcc client.o -o client
+	g++ server.cpp -o server
+	g++ client.cpp -o client
