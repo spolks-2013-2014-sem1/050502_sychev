@@ -7,8 +7,11 @@
 #include <fcntl.h>  /* open(), O_RDONLY */
 #include <sys/stat.h>   /* S_IRUSR */
 #include <sys/types.h>  /* mode_t */
-
-#define buffer_size 64
+#include <iostream>
+#include <cstring>
+#include "itoa.h"
+using namespace std;
+#define buffer_size 32
 int getPort(char * str)
 {
     char* ends;
@@ -38,16 +41,15 @@ int recvFileSize(int clientSocket)
 int recvFile(int clientSocket,char* fileOut)
 {
     FILE *file2;
-    char tmp[buffer_size];
+    char * tmp = (char*)malloc(buffer_size);
     int n,currentSize = 0;
     int fileSize = recvFileSize(clientSocket);
     printf("File size: %d\n",fileSize);
-
+    int i = 0;
     file2 = fopen(fileOut, "wb");
     while (1)
     {
         n = recv(clientSocket , tmp , buffer_size , 0);
-        currentSize += n;
         if (n <= 0){
             if (currentSize < fileSize)
             {
@@ -58,8 +60,10 @@ int recvFile(int clientSocket,char* fileOut)
             currentSize = 0;
             break;
         }
-        fwrite(tmp, sizeof(char), buffer_size, file2);
-
+        fwrite(tmp, sizeof(char), strlen(tmp), file2);
+        currentSize += strlen(tmp);
+        for (i = 0;i<buffer_size; i++)
+           tmp[i] = '\0';
     }
     fclose(file2);  
 }

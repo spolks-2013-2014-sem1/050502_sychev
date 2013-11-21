@@ -25,12 +25,13 @@ int sendFileSize(int clientSocket,char* fileName)
 {   
     string msgFileSize = toString(getFileSize(fileName));
     cout << "file size : " << msgFileSize << endl;
-    return write(clientSocket,&msgFileSize[0],buffer_size);    
+    return write(clientSocket,&msgFileSize[0],64);    
 }
 int sendFile(char * fileName,int clientSocket)
 {
+    int i = 0;
     FILE *file;
-    char tmp[buffer_size];
+    char * tmp = (char*)malloc(buffer_size);
     int n; 
     
     file = fopen(fileName, "rb");
@@ -46,7 +47,9 @@ int sendFile(char * fileName,int clientSocket)
         if (n <= 0){
             break;
         }
-        write(clientSocket,tmp,strlen(tmp));      
+        send(clientSocket,tmp,n,0);
+        for (i = 0;i<buffer_size; i++)
+           tmp[i] = '\0';
     }
     fclose(file);
 }
