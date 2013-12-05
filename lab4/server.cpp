@@ -13,7 +13,7 @@
 #include "itoa.h"
 #include <unistd.h>
 using namespace std;
-#define buffer_size 128
+#define buffer_size 1024
  int mainSize = 0;
 int getFileSize(char * fileName)
 {
@@ -32,34 +32,34 @@ int sendFileSize(int clientSocket,char* fileName)
 int sendFile(char * fileName,int clientSocket)
 {
     int i = 0;
-    FILE *file;
+    int file;
     char * tmp = (char*)malloc(buffer_size);
     int n; 
     int oobSize = 0;
-    file = fopen(fileName, "rb");
+    file = open(fileName, O_RDONLY);
     printf("result fcntl %d\n",fcntl(clientSocket,F_SETOWN));
     if (sendFileSize(clientSocket,fileName) == -1)
     {
         printf("File size writing error!\n");
         exit(1);
     }
-
+    uint8_t buf[buffer_size];
+    int tmpSize = 0;
     while (1)
     {
-        n = fread(tmp, sizeof(char), buffer_size, file);
+        //n = fread(tmp, sizeof(char), buffer_size, file);
+        n = read(file, buf, buffer_size);
         if (n <= 0){
             break;
         }
-        send(clientSocket,tmp,n,0);
+        tmpSize = send(clientSocket,buf,n,0);
         usleep(500000);
         oobSize += send(clientSocket,"X",1,MSG_OOB);
-        mainSize += strlen(tmp);
+        mainSize += tmpSize;
         cout << "Count of sending bytes: " << mainSize << endl;
-        for (i = 0;i<buffer_size; i++)
-           tmp[i] = '\0';
     }
     cout << "Oob size :" << oobSize << endl;
-    fclose(file);
+    close(file);
 }
 int main(int argc,char * argv[])
 {    
@@ -85,6 +85,9 @@ int main(int argc,char * argv[])
         cout << "socket error!\n";
         exit(1);
     }
+
+    int opt = 1;
+    setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(port);
@@ -113,4 +116,3 @@ int main(int argc,char * argv[])
     printf("End of listen!\n");
     return 0;
 }
-
